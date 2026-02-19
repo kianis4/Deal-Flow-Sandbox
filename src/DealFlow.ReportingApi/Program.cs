@@ -1,6 +1,7 @@
 using DealFlow.Data;
 using DealFlow.ReportingApi.Models;
 using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,13 +13,12 @@ builder.Host.UseSerilog((ctx, cfg) =>
 builder.Services.AddDbContext<DealFlowDbContext>(opts =>
     opts.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-app.UseSwagger();
-app.UseSwaggerUI();
+app.MapOpenApi();
+app.MapScalarApiReference();
 
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", service = "deal-reporting-api" }));
 
@@ -50,7 +50,7 @@ app.MapGet("/api/v1/deals", async (
     return Results.Ok(deals);
 })
 .WithName("ListDeals")
-.WithOpenApi();
+;
 
 // GET /api/v1/deals/{id}/timeline
 app.MapGet("/api/v1/deals/{id:guid}/timeline", async (Guid id, DealFlowDbContext db) =>
@@ -67,7 +67,7 @@ app.MapGet("/api/v1/deals/{id:guid}/timeline", async (Guid id, DealFlowDbContext
     return Results.Ok(events);
 })
 .WithName("GetTimeline")
-.WithOpenApi();
+;
 
 app.Run();
 

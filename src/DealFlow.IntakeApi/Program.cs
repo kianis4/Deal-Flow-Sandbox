@@ -7,6 +7,7 @@ using DealFlow.IntakeApi.Validators;
 using FluentValidation;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
 using Serilog;
 using System.Text.Json;
 
@@ -39,8 +40,7 @@ builder.Services.AddMassTransit(x =>
 });
 
 // OpenAPI
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
@@ -51,8 +51,8 @@ using (var scope = app.Services.CreateScope())
     await db.Database.MigrateAsync();
 }
 
-app.UseSwagger();
-app.UseSwaggerUI();
+app.MapOpenApi();
+app.MapScalarApiReference();
 
 // Health check
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", service = "deal-intake-api" }));
@@ -115,7 +115,7 @@ app.MapPost("/api/v1/deals", async (
     return Results.Created($"/api/v1/deals/{deal.Id}", ToResponse(deal));
 })
 .WithName("SubmitDeal")
-.WithOpenApi();
+;
 
 // GET /api/v1/deals/{id}
 app.MapGet("/api/v1/deals/{id:guid}", async (Guid id, DealFlowDbContext db) =>
@@ -124,7 +124,7 @@ app.MapGet("/api/v1/deals/{id:guid}", async (Guid id, DealFlowDbContext db) =>
     return deal is null ? Results.NotFound() : Results.Ok(ToResponse(deal));
 })
 .WithName("GetDeal")
-.WithOpenApi();
+;
 
 app.Run();
 
