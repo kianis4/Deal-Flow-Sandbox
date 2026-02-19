@@ -1,0 +1,16 @@
+/Users/suley/ProductionApps/Deal-Flow-Sandbox/src/DealFlow.Data/bin/Debug/net10.0/DealFlow.Data.deps.json
+/Users/suley/ProductionApps/Deal-Flow-Sandbox/src/DealFlow.Data/bin/Debug/net10.0/DealFlow.Data.dll
+/Users/suley/ProductionApps/Deal-Flow-Sandbox/src/DealFlow.Data/bin/Debug/net10.0/DealFlow.Data.pdb
+/Users/suley/ProductionApps/Deal-Flow-Sandbox/src/DealFlow.Data/bin/Debug/net10.0/DealFlow.Contracts.dll
+/Users/suley/ProductionApps/Deal-Flow-Sandbox/src/DealFlow.Data/bin/Debug/net10.0/DealFlow.Contracts.pdb
+/Users/suley/ProductionApps/Deal-Flow-Sandbox/src/DealFlow.Data/obj/Debug/net10.0/DealFlow.Data.csproj.AssemblyReference.cache
+/Users/suley/ProductionApps/Deal-Flow-Sandbox/src/DealFlow.Data/obj/Debug/net10.0/DealFlow.Data.GeneratedMSBuildEditorConfig.editorconfig
+/Users/suley/ProductionApps/Deal-Flow-Sandbox/src/DealFlow.Data/obj/Debug/net10.0/DealFlow.Data.AssemblyInfoInputs.cache
+/Users/suley/ProductionApps/Deal-Flow-Sandbox/src/DealFlow.Data/obj/Debug/net10.0/DealFlow.Data.AssemblyInfo.cs
+/Users/suley/ProductionApps/Deal-Flow-Sandbox/src/DealFlow.Data/obj/Debug/net10.0/DealFlow.Data.csproj.CoreCompileInputs.cache
+/Users/suley/ProductionApps/Deal-Flow-Sandbox/src/DealFlow.Data/obj/Debug/net10.0/DealFlow.Data.sourcelink.json
+/Users/suley/ProductionApps/Deal-Flow-Sandbox/src/DealFlow.Data/obj/Debug/net10.0/DealFlow.53424DF3.Up2Date
+/Users/suley/ProductionApps/Deal-Flow-Sandbox/src/DealFlow.Data/obj/Debug/net10.0/DealFlow.Data.dll
+/Users/suley/ProductionApps/Deal-Flow-Sandbox/src/DealFlow.Data/obj/Debug/net10.0/refint/DealFlow.Data.dll
+/Users/suley/ProductionApps/Deal-Flow-Sandbox/src/DealFlow.Data/obj/Debug/net10.0/DealFlow.Data.pdb
+/Users/suley/ProductionApps/Deal-Flow-Sandbox/src/DealFlow.Data/obj/Debug/net10.0/ref/DealFlow.Data.dll

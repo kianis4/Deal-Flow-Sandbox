@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DealFlow.Contracts/DealFlow.Contracts.csproj" />
+    <Project Path="src/DealFlow.Data/DealFlow.Data.csproj" />
+    <Project Path="src/DealFlow.IntakeApi/DealFlow.IntakeApi.csproj" />
+    <Project Path="src/DealFlow.NotifyWorker/DealFlow.NotifyWorker.csproj" />
+    <Project Path="src/DealFlow.ReportingApi/DealFlow.ReportingApi.csproj" />
+    <Project Path="src/DealFlow.ScoringWorker/DealFlow.ScoringWorker.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DealFlow.IntakeApi.Tests/DealFlow.IntakeApi.Tests.csproj" />
+    <Project Path="tests/DealFlow.Integration.Tests/DealFlow.Integration.Tests.csproj" />
+    <Project Path="tests/DealFlow.ReportingApi.Tests/DealFlow.ReportingApi.Tests.csproj" />
+    <Project Path="tests/DealFlow.ScoringWorker.Tests/DealFlow.ScoringWorker.Tests.csproj" />
+  </Folder>
+</Solution>
