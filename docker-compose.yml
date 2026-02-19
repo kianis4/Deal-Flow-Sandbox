@@ -1,0 +1,93 @@
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: dealflow
+      POSTGRES_USER: dealflow
+      POSTGRES_PASSWORD: dealflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dealflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: rabbitmq-diagnostics ping
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  deal-intake-api:
+    build:
+      context: .
+      dockerfile: src/DealFlow.IntakeApi/Dockerfile
+    ports:
+      - "5001:8080"
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=dealflow;Username=dealflow;Password=dealflow"
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Username: guest
+      RabbitMQ__Password: guest
+      ASPNETCORE_ENVIRONMENT: Development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  deal-scoring-worker:
+    build:
+      context: .
+      dockerfile: src/DealFlow.ScoringWorker/Dockerfile
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=dealflow;Username=dealflow;Password=dealflow"
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Username: guest
+      RabbitMQ__Password: guest
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  deal-notify:
+    build:
+      context: .
+      dockerfile: src/DealFlow.NotifyWorker/Dockerfile
+    environment:
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Username: guest
+      RabbitMQ__Password: guest
+      SendGrid__ApiKey: "${SENDGRID_API_KEY:-}"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  deal-reporting-api:
+    build:
+      context: .
+      dockerfile: src/DealFlow.ReportingApi/Dockerfile
+    ports:
+      - "5002:8080"
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=dealflow;Username=dealflow;Password=dealflow"
+      ASPNETCORE_ENVIRONMENT: Development
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
