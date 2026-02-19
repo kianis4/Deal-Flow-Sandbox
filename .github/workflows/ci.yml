@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore DealFlow.slnx
+
+      - name: Build
+        run: dotnet build DealFlow.slnx --no-restore --configuration Release
+
+      - name: Run unit tests
+        run: |
+          dotnet test tests/DealFlow.IntakeApi.Tests/ --no-build --configuration Release --verbosity normal
+          dotnet test tests/DealFlow.ScoringWorker.Tests/ --no-build --configuration Release --verbosity normal
+          dotnet test tests/DealFlow.ReportingApi.Tests/ --no-build --configuration Release --verbosity normal
+
+  build-images:
+    name: Build Docker Images
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build intake-api image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: src/DealFlow.IntakeApi/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: false
+          tags: dealflow/intake-api:${{ github.sha }}
+
+      - name: Build scoring-worker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: src/DealFlow.ScoringWorker/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: false
+          tags: dealflow/scoring-worker:${{ github.sha }}
+
+      - name: Build notify-worker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: src/DealFlow.NotifyWorker/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: false
+          tags: dealflow/notify-worker:${{ github.sha }}
+
+      - name: Build reporting-api image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: src/DealFlow.ReportingApi/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: false
+          tags: dealflow/reporting-api:${{ github.sha }}

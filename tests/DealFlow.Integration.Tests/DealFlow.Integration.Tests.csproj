@@ -12,6 +12,7 @@
     <PackageReference Include="FluentAssertions" Version="8.8.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.3" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
     <PackageReference Include="Testcontainers.PostgreSql" Version="4.10.0" />
     <PackageReference Include="Testcontainers.RabbitMq" Version="4.10.0" />
     <PackageReference Include="xunit" Version="2.9.3" />
@@ -23,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\DealFlow.IntakeApi\DealFlow.IntakeApi.csproj" />
+    <ProjectReference Include="..\..\src\DealFlow.Data\DealFlow.Data.csproj" />
     <ProjectReference Include="..\..\src\DealFlow.Contracts\DealFlow.Contracts.csproj" />
   </ItemGroup>
 
