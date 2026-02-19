@@ -1,41 +1,74 @@
+using DealFlow.Data;
+using DealFlow.ReportingApi.Models;
+using Microsoft.EntityFrameworkCore;
+using Serilog;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Host.UseSerilog((ctx, cfg) =>
+    cfg.ReadFrom.Configuration(ctx.Configuration)
+       .WriteTo.Console());
+
+builder.Services.AddDbContext<DealFlowDbContext>(opts =>
+    opts.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
-app.UseHttpsRedirection();
+app.MapGet("/health", () => Results.Ok(new { status = "healthy", service = "deal-reporting-api" }));
 
-var summaries = new[]
+// GET /api/v1/deals with optional filters
+app.MapGet("/api/v1/deals", async (
+    DealFlowDbContext db,
+    string? status,
+    decimal? minAmount,
+    string? vendorTier) =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    var query = db.Deals.AsQueryable();
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
+    if (!string.IsNullOrWhiteSpace(status))
+        query = query.Where(d => d.Status == status.ToUpper());
+
+    if (minAmount.HasValue)
+        query = query.Where(d => d.Amount >= minAmount.Value);
+
+    if (!string.IsNullOrWhiteSpace(vendorTier))
+        query = query.Where(d => d.VendorTier == vendorTier.ToUpper());
+
+    var deals = await query
+        .OrderByDescending(d => d.CreatedAt)
+        .Select(d => new DealSummary(
+            d.Id, d.EquipmentType, d.Amount, d.VendorTier,
+            d.Status, d.Score, d.RiskFlag, d.CreatedAt))
+        .ToListAsync();
+
+    return Results.Ok(deals);
 })
-.WithName("GetWeatherForecast");
+.WithName("ListDeals")
+.WithOpenApi();
+
+// GET /api/v1/deals/{id}/timeline
+app.MapGet("/api/v1/deals/{id:guid}/timeline", async (Guid id, DealFlowDbContext db) =>
+{
+    var exists = await db.Deals.AnyAsync(d => d.Id == id);
+    if (!exists) return Results.NotFound();
+
+    var events = await db.DealEvents
+        .Where(e => e.DealId == id)
+        .OrderBy(e => e.OccurredAt)
+        .Select(e => new TimelineEvent(e.EventType, e.Payload, e.OccurredAt))
+        .ToListAsync();
+
+    return Results.Ok(events);
+})
+.WithName("GetTimeline")
+.WithOpenApi();
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+public partial class Program { }
