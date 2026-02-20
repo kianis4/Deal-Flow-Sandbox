@@ -21,7 +21,6 @@ public class DealSubmittedConsumer(
             msg.DealId, msg.CorrelationId);
 
         var deal = await db.Deals
-            .Include(d => d.Events)
             .FirstOrDefaultAsync(d => d.Id == msg.DealId);
 
         if (deal is null)
@@ -30,17 +29,13 @@ public class DealSubmittedConsumer(
             return;
         }
 
-        // Idempotency: skip if already processed beyond RECEIVED
-        if (deal.Status != DealStatus.Received)
+        // Idempotency: skip only if already scored or beyond
+        if (deal.Status == DealStatus.Scored || deal.Status == DealStatus.Notified)
         {
             logger.LogWarning("Deal {DealId} already in status {Status} — skipping (idempotency)",
                 msg.DealId, deal.Status);
             return;
         }
-
-        deal.Status = DealStatus.Scoring;
-        deal.UpdatedAt = DateTimeOffset.UtcNow;
-        await db.SaveChangesAsync();
 
         var (score, riskFlag) = ScoringEngine.Score(msg);
 
@@ -49,7 +44,7 @@ public class DealSubmittedConsumer(
         deal.Status = DealStatus.Scored;
         deal.UpdatedAt = DateTimeOffset.UtcNow;
 
-        deal.Events.Add(new DealEvent
+        db.DealEvents.Add(new DealEvent
         {
             Id = Guid.NewGuid(),
             DealId = deal.Id,

@@ -1,6 +1,7 @@
 **/.git
 **/.gitignore
 **/bin
+**/bin\*
 **/obj
 **/*.Tests
 docs
