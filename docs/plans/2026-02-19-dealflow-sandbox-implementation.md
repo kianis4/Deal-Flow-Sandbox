@@ -1,5 +1,10 @@
 # DealFlow Sandbox — Implementation Plan
 
+> **STATUS: SUPERSEDED** — This was the original implementation plan. It has been completed with these modifications:
+> - **Field Rename:** VendorTier (A/B/C) → CreditRating (CR1-CR5)
+> - **Feature Addition:** Party Exposure Lookup — see `2026-02-20-party-exposure-lookup-*` docs
+> - **Seed Data:** 28 realistic demo deals added — see `SeedData.cs`
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Build a complete 4-service microservices deal pipeline with local Docker Compose demo and Azure Container Apps cloud deployment.

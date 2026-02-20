@@ -1,7 +1,7 @@
 # Party Exposure Lookup — Feature Design
 
 **Date:** 2026-02-20
-**Status:** Approved
+**Status:** Implemented (2026-02-20)
 
 ## Problem
 

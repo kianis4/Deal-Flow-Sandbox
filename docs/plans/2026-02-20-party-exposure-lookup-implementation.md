@@ -1,5 +1,7 @@
 # Party Exposure Lookup — Implementation Plan
 
+> **STATUS: Implemented** (2026-02-20) — All 12 tasks completed. See demo.md for walkthrough.
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Add a Party Exposure Lookup feature that lets users search by customer or vendor name and instantly see total exposure, NSFs, delinquency, and document requirements — replacing a manual 2-minute SSRS workflow.

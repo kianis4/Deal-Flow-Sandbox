@@ -132,18 +132,36 @@ Status is stored as a plain string column in Postgres (`RECEIVED`, `SCORED`, `NO
 ```mermaid
 erDiagram
     Deal {
-        uuid        Id           PK
+        uuid        Id               PK
         uuid        CorrelationId
+        int         AppNumber        "Vision app number"
+        text        AppStatus        "FUNDED, PAID_OFF, etc."
+        text        CustomerLegalName
+        text        PrimaryVendor
+        text        DealFormat       "VENDOR or BROKER"
+        text        Lessor           "MHCCL or MHCCA"
+        text        AccountManager
         text        EquipmentType
+        text        PrimaryEquipmentCategory
         integer     EquipmentYear
         numeric     Amount
+        numeric     EquipmentCost
+        numeric     GrossContract
+        numeric     NetInvest
+        numeric     MonthlyPayment
         integer     TermMonths
         text        Industry
         text        Province
-        varchar3    CreditRating
-        text        Status
-        integer     Score          "nullable"
-        text        RiskFlag       "nullable"
+        varchar     CreditRating     "CR1-CR5"
+        text        Status           "pipeline status"
+        integer     Score            "nullable"
+        text        RiskFlag         "nullable"
+        integer     PaymentsMade
+        integer     RemainingPayments
+        boolean     IsActive
+        integer     NsfCount
+        date        LastNsfDate      "nullable"
+        integer     DaysPastDue
         timestamptz CreatedAt
         timestamptz UpdatedAt
     }
@@ -160,6 +178,8 @@ erDiagram
 ```
 
 `DealEvent` is an append-only audit log. Every state change writes a row here with the full JSON payload of what happened. This is a lightweight form of the **Event Sourcing** pattern — the current state lives in `Deal`, but the full history lives in `DealEvents`. The reporting API exposes this as a timeline endpoint.
+
+The Deal entity is aligned with Vision's field structure — enabling realistic demo scenarios for party exposure lookups, document requirement checks, and NSF/delinquency tracking.
 
 ---
 
@@ -341,8 +361,10 @@ All deals start at **100 points**. Deductions for risk factors:
 | Deal size | Amount > $500,000 | −20 pts |
 | Term length | TermMonths > 60 | −10 pts |
 | Equipment age | EquipmentYear < 2018 | −15 pts |
-| Vendor quality | Tier B | −10 pts |
-| Vendor quality | Tier C | −20 pts |
+| Credit rating | CR2 | −5 pts |
+| Credit rating | CR3 | −15 pts |
+| Credit rating | CR4 | −25 pts |
+| Credit rating | CR5 | −35 pts |
 
 Score is clamped to [0, 100].
 
@@ -351,8 +373,8 @@ Score is clamped to [0, 100].
 - 50 – 74 → `MEDIUM`
 - 0 – 49 → `HIGH`
 
-**Example — clean deal:** $250k · 36 months · 2022 equipment · Tier A = **100 (LOW)**
-**Example — risky deal:** $800k · 72 months · 2016 equipment · Tier B = 100 − 20 − 10 − 15 − 10 = **45 (HIGH)**
+**Example — clean deal:** $250k · 36 months · 2022 equipment · CR1 = **100 (LOW)**
+**Example — risky deal:** $1.25M · 84 months · 2014 equipment · CR5 = 100 − 35 − 10 − 15 − 35 = **5 (HIGH)**
 
 ---
 
@@ -371,6 +393,7 @@ First run takes ~2 minutes (downloads images, compiles all .NET projects). Subse
 | Submit / query deals | http://localhost:5001 |
 | Interactive API docs (IntakeApi) | http://localhost:5001/scalar/v1 |
 | Reporting queries | http://localhost:5002 |
+| Party Exposure Lookup (Web UI) | http://localhost:5002/index.html |
 | Interactive API docs (ReportingApi) | http://localhost:5002/scalar/v1 |
 | RabbitMQ Management UI | http://localhost:15672 — `guest` / `guest` |
 
@@ -428,6 +451,32 @@ Returns the ordered event log for a single deal:
 ]
 ```
 
+#### `GET /api/v1/exposure`
+
+Party exposure lookup — search total exposure by customer or vendor name.
+
+| Parameter | Example | Effect |
+|---|---|---|
+| `searchType` | `customer` or `vendor` | Type of party to search |
+| `name` | `TransCanada` | Party name (case-insensitive substring match) |
+| `includePastDeals` | `true` | Include paid-off deals (default: `false`) |
+
+Returns:
+- **summary** — total deals, active/paid-off counts, net exposure, NSF count, delinquency
+- **documentRequirements** — tier (Standard / Enhanced / FullReview) with required documents based on configurable thresholds
+- **deals** — detailed deal records for the matched party
+
+Document requirement tiers:
+| Tier | Threshold | Required |
+|---|---|---|
+| Standard | < $250K | No additional documents |
+| Enhanced | $250K – $1M | Bank statements |
+| FullReview | > $1M | 3-year financials + interims for spreads |
+
+#### Web UI — `http://localhost:5002/index.html`
+
+Interactive single-page exposure lookup with search form, document requirement banners, summary cards, and deal table. No build step — vanilla HTML + Tailwind CDN.
+
 ---
 
 ## Project Structure
@@ -436,7 +485,7 @@ Returns the ordered event log for a single deal:
 DealFlow-Sandbox/
 ├── src/
 │   ├── DealFlow.Contracts/          # Shared message contracts + domain constants
-│   │   ├── Domain/                  # DealStatus, RiskFlag (string constants)
+│   │   ├── Domain/                  # DealStatus, RiskFlag, AppStatus, DealFormat, Lessor
 │   │   └── Messages/                # DealSubmitted, DealScored (C# records)
 │   │
 │   ├── DealFlow.Data/               # Shared EF Core layer
@@ -457,9 +506,18 @@ DealFlow-Sandbox/
 │   │   └── Consumers/               # DealScoredConsumer
 │   │
 │   ├── DealFlow.ReportingApi/       # HTTP API — port 5002
-│   │   └── Program.cs               # List + timeline routes (Minimal API)
+│   │   ├── Models/                  # DealSummary, ExposureModels
+│   │   ├── Services/                # DocumentRequirementsService
+│   │   ├── wwwroot/                 # Exposure lookup web UI (index.html)
+│   │   └── Program.cs               # List + timeline + exposure routes (Minimal API)
 │   │
 │   └── DealFlow.IntakeApi.Tests/    # xUnit integration tests
+│
+├── tests/
+│   ├── DealFlow.IntakeApi.Tests/    # Intake API tests (WebApplicationFactory)
+│   ├── DealFlow.ReportingApi.Tests/ # Document requirements + exposure tests
+│   ├── DealFlow.ScoringWorker.Tests/# Scoring engine tests
+│   └── DealFlow.Integration.Tests/  # Full pipeline integration tests (Testcontainers)
 │
 ├── docs/
 │   ├── azure-setup.md               # Full Azure Container Apps deployment guide
@@ -478,7 +536,7 @@ Every dependency runs as a Docker container. There is nothing to install locally
 
 | Container | Image | What it does |
 |---|---|---|
-| `postgres` | postgres:16-alpine | Relational database. Tables auto-created by EF Core on first start. |
+| `postgres` | postgres:16-alpine | Relational database. Tables auto-created by EF Core on first start. 28 demo deals seeded automatically. |
 | `rabbitmq` | rabbitmq:3.13-management-alpine | Message broker. Queues auto-created by MassTransit on connect. |
 | `deal-intake-api` | Built from source | ASP.NET Core on internal port 8080, mapped to host 5001. |
 | `deal-scoring-worker` | Built from source | Worker service. No port. Connects to RabbitMQ + Postgres. |
