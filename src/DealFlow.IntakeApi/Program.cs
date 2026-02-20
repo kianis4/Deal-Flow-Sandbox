@@ -49,6 +49,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<DealFlowDbContext>();
     await db.Database.MigrateAsync();
+    await SeedData.SeedAsync(db);
 }
 
 app.MapOpenApi();
