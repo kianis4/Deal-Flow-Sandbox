@@ -8,7 +8,12 @@ public record DealSummary(
     string Status,
     int? Score,
     string? RiskFlag,
-    DateTimeOffset CreatedAt
+    DateTimeOffset CreatedAt,
+    int? AppNumber = null,
+    string? CustomerLegalName = null,
+    string? PrimaryVendor = null,
+    string? Lessor = null,
+    bool IsActive = true
 );
 
 public record TimelineEvent(
