@@ -140,7 +140,7 @@ erDiagram
         integer     TermMonths
         text        Industry
         text        Province
-        varchar1    VendorTier
+        varchar3    CreditRating
         text        Status
         integer     Score          "nullable"
         text        RiskFlag       "nullable"
@@ -386,17 +386,17 @@ Submit a new deal.
 
 ```json
 {
-  "equipmentType": "Excavator",
-  "equipmentYear": 2022,
-  "amount": 250000,
-  "termMonths": 48,
-  "industry": "Construction",
+  "equipmentType": "Semi-Truck (Kenworth T680)",
+  "equipmentYear": 2023,
+  "amount": 185000,
+  "termMonths": 60,
+  "industry": "Transportation",
   "province": "ON",
-  "vendorTier": "A"
+  "creditRating": "CR2"
 }
 ```
 
-Validation rules: `vendorTier` must be A, B, or C · `amount` 1–10,000,000 · `termMonths` 6–120 · `equipmentYear` 1990–next year.
+Validation rules: `creditRating` must be CR1–CR5 (CR1 = best) · `amount` 1–10,000,000 · `termMonths` 6–120 · `equipmentYear` 1990–next year.
 
 Returns `201 Created` with the deal record (`status: "RECEIVED"`, `score: null`).
 
@@ -416,7 +416,7 @@ List all deals. Optional query parameters:
 |---|---|---|
 | `status` | `?status=SCORED` | Filter by status |
 | `minAmount` | `?minAmount=500000` | Minimum deal value |
-| `vendorTier` | `?vendorTier=A` | Filter by vendor tier |
+| `creditRating` | `?creditRating=CR5` | Filter by credit rating |
 
 #### `GET /api/v1/deals/{id}/timeline`
 

@@ -11,17 +11,19 @@ docker compose up --build
 
 ## Step 1: Submit a Low-Risk Deal
 
+A 2023 Kenworth T680 semi-truck — strong credit, recent equipment, mid-range ticket.
+
 ```bash
 curl -s -X POST http://localhost:5001/api/v1/deals \
   -H "Content-Type: application/json" \
   -d '{
-    "equipmentType": "Forklift",
-    "equipmentYear": 2022,
-    "amount": 150000,
-    "termMonths": 36,
-    "industry": "Logistics",
+    "equipmentType": "Semi-Truck (Kenworth T680)",
+    "equipmentYear": 2023,
+    "amount": 185000,
+    "termMonths": 60,
+    "industry": "Transportation",
     "province": "ON",
-    "vendorTier": "A"
+    "creditRating": "CR1"
   }' | python3 -m json.tool
 ```
 
@@ -38,7 +40,7 @@ docker compose logs deal-scoring-worker -f
 Within 2 seconds you should see:
 ```
 Scoring deal <id> [correlation: <uuid>]
-Deal <id> scored: 100 (LOW)
+Deal <id> scored: 90 (LOW)
 ```
 
 ## Step 3: Check Deal Status
@@ -47,7 +49,7 @@ Deal <id> scored: 100 (LOW)
 curl -s http://localhost:5001/api/v1/deals/<id> | python3 -m json.tool
 ```
 
-**Expected:** status = "SCORED", score = 100, riskFlag = "LOW"
+**Expected:** status = "SCORED", score ≥ 85, riskFlag = "LOW"
 
 ## Step 4: View Audit Timeline
 
@@ -55,40 +57,70 @@ curl -s http://localhost:5001/api/v1/deals/<id> | python3 -m json.tool
 curl -s http://localhost:5002/api/v1/deals/<id>/timeline | python3 -m json.tool
 ```
 
-**Expected:** Array with DealSubmitted and DealScored events.
+**Expected:** Array with DealSubmitted and DealScored events with full payloads.
 
 ## Step 5: Submit a High-Risk Deal
+
+A 2014 Cat 336 excavator — poor credit rating, aged equipment, large ticket, long term.
 
 ```bash
 curl -s -X POST http://localhost:5001/api/v1/deals \
   -H "Content-Type: application/json" \
   -d '{
-    "equipmentType": "Excavator",
-    "equipmentYear": 2015,
-    "amount": 1500000,
+    "equipmentType": "Excavator (Caterpillar 336)",
+    "equipmentYear": 2014,
+    "amount": 1250000,
     "termMonths": 84,
     "industry": "Construction",
     "province": "AB",
-    "vendorTier": "C"
+    "creditRating": "CR5"
   }' | python3 -m json.tool
 ```
 
-**Expected:** score <= 20, riskFlag = "HIGH"
+**Expected:** score ≤ 20, riskFlag = "HIGH"
 
-## Step 6: Filter Deals
+Score breakdown:
+- Base: 100
+- Amount > $1M: −35
+- Term > 60 months: −10
+- Equipment pre-2018: −15
+- CR5 credit rating: −35
+- **Total: 5 → HIGH risk**
+
+## Step 6: Submit an Average Deal
+
+A 2020 Volvo FH16 dump truck — decent credit, recent, mid-range.
+
+```bash
+curl -s -X POST http://localhost:5001/api/v1/deals \
+  -H "Content-Type: application/json" \
+  -d '{
+    "equipmentType": "Dump Truck (Volvo FH16)",
+    "equipmentYear": 2020,
+    "amount": 320000,
+    "termMonths": 48,
+    "industry": "Construction",
+    "province": "BC",
+    "creditRating": "CR3"
+  }' | python3 -m json.tool
+```
+
+**Expected:** score ~75, riskFlag = "MEDIUM"
+
+## Step 7: Filter Deals by Reporting API
 
 ```bash
 # All scored deals
 curl -s "http://localhost:5002/api/v1/deals?status=SCORED" | python3 -m json.tool
 
-# High-value deals
+# High-value deals (over $500k)
 curl -s "http://localhost:5002/api/v1/deals?minAmount=500000" | python3 -m json.tool
 
-# Tier C deals
-curl -s "http://localhost:5002/api/v1/deals?vendorTier=C" | python3 -m json.tool
+# Filter by credit rating (CR5 = highest risk)
+curl -s "http://localhost:5002/api/v1/deals?creditRating=CR5" | python3 -m json.tool
 ```
 
-## Step 7: Show RabbitMQ Dashboard
+## Step 8: Show RabbitMQ Dashboard
 
 Open http://localhost:15672 (guest/guest)
 - Navigate to **Queues** — see `deal-submitted` and `deal-scored-notify`
@@ -104,10 +136,10 @@ curl -s -X POST http://localhost:5001/api/v1/deals \
     "equipmentYear": 2022,
     "amount": -100,
     "termMonths": 36,
-    "industry": "Logistics",
+    "industry": "Construction",
     "province": "ON",
-    "vendorTier": "X"
+    "creditRating": "CR9"
   }' | python3 -m json.tool
 ```
 
-**Expected:** 400 Bad Request with field-level validation errors.
+**Expected:** 400 Bad Request with field-level validation errors — `equipmentType` empty, `amount` negative, `creditRating` invalid.
