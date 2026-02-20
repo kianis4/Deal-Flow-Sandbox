@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exposure Lookup — DealFlow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div>
+                <h1 class="text-xl font-bold text-gray-900">Party Exposure Lookup</h1>
+                <p class="text-sm text-gray-500">Search by customer or vendor to check total exposure and document requirements</p>
+            </div>
+            <span class="text-xs text-gray-400">DealFlow Sandbox</span>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6">
+        <!-- Search Form -->
+        <div class="bg-white rounded-lg border border-gray-200 p-5 mb-6">
+            <div class="flex flex-wrap gap-3 items-end">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Search By</label>
+                    <select id="searchType" class="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="customer">Customer</option>
+                        <option value="vendor">Vendor / Dealer</option>
+                    </select>
+                </div>
+                <div class="flex-1 min-w-[250px]">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Party Name</label>
+                    <input type="text" id="partyName" placeholder="e.g. TransCanada Hauling"
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        onkeydown="if(event.key==='Enter') search()">
+                </div>
+                <div class="flex items-center gap-2 pb-0.5">
+                    <input type="checkbox" id="includePast" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <label for="includePast" class="text-sm text-gray-600">Include past deals</label>
+                </div>
+                <button onclick="search()" id="searchBtn"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md text-sm font-medium transition-colors">
+                    Search
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading" class="hidden text-center py-12">
+            <div class="inline-block w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            <p class="text-gray-500 mt-2 text-sm">Searching...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty" class="hidden text-center py-12">
+            <p class="text-gray-400 text-lg">Enter a party name to search</p>
+        </div>
+
+        <!-- No Results -->
+        <div id="noResults" class="hidden text-center py-12">
+            <p class="text-gray-500 text-lg">No deals found</p>
+            <p class="text-gray-400 text-sm mt-1">Try a different name or enable "Include past deals"</p>
+        </div>
+
+        <!-- Results -->
+        <div id="results" class="hidden fade-in space-y-6">
+            <!-- Doc Requirements Banner -->
+            <div id="docBanner" class="rounded-lg border-2 p-4">
+                <div class="flex items-start gap-3">
+                    <div id="docIcon" class="text-2xl mt-0.5"></div>
+                    <div>
+                        <h3 id="docTitle" class="font-bold text-lg"></h3>
+                        <ul id="docReqs" class="mt-1 text-sm list-disc list-inside"></ul>
+                        <p id="docNote" class="text-xs mt-1 opacity-75"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                <div class="bg-white rounded-lg border border-gray-200 p-4">
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Total Net Exposure</p>
+                    <p id="sumNetExposure" class="text-2xl font-bold text-gray-900 mt-1"></p>
+                </div>
+                <div class="bg-white rounded-lg border border-gray-200 p-4">
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Active Deals</p>
+                    <p id="sumActive" class="text-2xl font-bold text-blue-600 mt-1"></p>
+                </div>
+                <div class="bg-white rounded-lg border border-gray-200 p-4">
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Paid Off</p>
+                    <p id="sumPaidOff" class="text-2xl font-bold text-gray-400 mt-1"></p>
+                </div>
+                <div class="bg-white rounded-lg border border-gray-200 p-4">
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Total NSFs</p>
+                    <p id="sumNsf" class="text-2xl font-bold mt-1"></p>
+                </div>
+                <div class="bg-white rounded-lg border border-gray-200 p-4">
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Last NSF</p>
+                    <p id="sumLastNsf" class="text-lg font-semibold text-gray-700 mt-1"></p>
+                </div>
+                <div class="bg-white rounded-lg border border-gray-200 p-4">
+                    <p class="text-xs text-gray-500 uppercase tracking-wide">Delinquent</p>
+                    <p id="sumDelinquent" class="text-2xl font-bold mt-1"></p>
+                </div>
+            </div>
+
+            <!-- Party Name -->
+            <div class="flex items-center gap-2">
+                <h2 id="partyTitle" class="text-lg font-bold text-gray-800"></h2>
+                <span id="searchLabel" class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full uppercase"></span>
+            </div>
+
+            <!-- Deals Table -->
+            <div class="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="text-left px-3 py-2.5 font-semibold text-gray-600">App#</th>
+                            <th class="text-left px-3 py-2.5 font-semibold text-gray-600">Status</th>
+                            <th class="text-left px-3 py-2.5 font-semibold text-gray-600">Customer</th>
+                            <th class="text-left px-3 py-2.5 font-semibold text-gray-600">Vendor</th>
+                            <th class="text-left px-3 py-2.5 font-semibold text-gray-600">Format</th>
+                            <th class="text-left px-3 py-2.5 font-semibold text-gray-600">Lessor</th>
+                            <th class="text-left px-3 py-2.5 font-semibold text-gray-600">Equipment</th>
+                            <th class="text-left px-3 py-2.5 font-semibold text-gray-600">CR</th>
+                            <th class="text-right px-3 py-2.5 font-semibold text-gray-600">Net Invest</th>
+                            <th class="text-right px-3 py-2.5 font-semibold text-gray-600">Monthly</th>
+                            <th class="text-center px-3 py-2.5 font-semibold text-gray-600">Term</th>
+                            <th class="text-center px-3 py-2.5 font-semibold text-gray-600">Pmts Made</th>
+                            <th class="text-center px-3 py-2.5 font-semibold text-gray-600">NSFs</th>
+                            <th class="text-left px-3 py-2.5 font-semibold text-gray-600">Last NSF</th>
+                            <th class="text-center px-3 py-2.5 font-semibold text-gray-600">Days Past Due</th>
+                            <th class="text-left px-3 py-2.5 font-semibold text-gray-600">Acct Manager</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dealsTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const $ = id => document.getElementById(id);
+        const fmt = n => new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n);
+        const fmtFull = n => new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(n);
+        const fmtDate = d => d ? new Date(d).toLocaleDateString('en-CA') : '—';
+
+        function show(id) { $(id).classList.remove('hidden'); }
+        function hide(id) { $(id).classList.add('hidden'); }
+        function hideAll() { ['loading','empty','noResults','results'].forEach(hide); }
+
+        async function search() {
+            const searchType = $('searchType').value;
+            const name = $('partyName').value.trim();
+            const includePast = $('includePast').checked;
+
+            if (!name) { $('partyName').focus(); return; }
+
+            hideAll();
+            show('loading');
+
+            try {
+                const params = new URLSearchParams({ searchType, name, includePastDeals: includePast });
+                const res = await fetch(`/api/v1/exposure?${params}`);
+                const data = await res.json();
+
+                hide('loading');
+
+                if (data.message || !data.deals || data.deals.length === 0) {
+                    show('noResults');
+                    return;
+                }
+
+                renderResults(data);
+                show('results');
+            } catch (err) {
+                hide('loading');
+                show('noResults');
+                console.error('Lookup failed:', err);
+            }
+        }
+
+        function renderResults(data) {
+            const s = data.summary;
+            const d = data.documentRequirements;
+
+            // Summary cards
+            $('sumNetExposure').textContent = fmt(s.totalNetExposure);
+            $('sumActive').textContent = s.activeDeals;
+            $('sumPaidOff').textContent = s.paidOffDeals;
+
+            $('sumNsf').textContent = s.totalNsfCount;
+            $('sumNsf').className = `text-2xl font-bold mt-1 ${s.totalNsfCount > 0 ? 'text-amber-600' : 'text-green-600'}`;
+
+            $('sumLastNsf').textContent = s.lastNsfDate ? fmtDate(s.lastNsfDate) : 'None';
+            $('sumDelinquent').textContent = s.dealsDelinquent;
+            $('sumDelinquent').className = `text-2xl font-bold mt-1 ${s.dealsDelinquent > 0 ? 'text-red-600' : 'text-green-600'}`;
+
+            // Doc requirements banner
+            const banner = $('docBanner');
+            const tiers = {
+                Standard: { bg: 'bg-green-50 border-green-300', icon: '\u2705', title: 'Standard — No Additional Documents Required', titleColor: 'text-green-800' },
+                Enhanced: { bg: 'bg-amber-50 border-amber-300', icon: '\u26A0\uFE0F', title: 'Enhanced — Bank Statements Required', titleColor: 'text-amber-800' },
+                FullReview: { bg: 'bg-red-50 border-red-400', icon: '\uD83D\uDED1', title: 'Full Review — Financial Statements Required', titleColor: 'text-red-800' }
+            };
+            const t = tiers[d.tier] || tiers.Standard;
+            banner.className = `rounded-lg border-2 p-4 ${t.bg}`;
+            $('docIcon').textContent = t.icon;
+            $('docTitle').textContent = t.title;
+            $('docTitle').className = `font-bold text-lg ${t.titleColor}`;
+            $('docReqs').innerHTML = d.requirements.map(r => `<li>${r}</li>`).join('');
+            $('docNote').textContent = d.note;
+
+            // Party name
+            $('partyTitle').textContent = data.partyName;
+            $('searchLabel').textContent = data.searchType;
+
+            // Deals table
+            const tbody = $('dealsTable');
+            tbody.innerHTML = data.deals.map(deal => {
+                const rowClass = deal.isActive ? '' : 'bg-gray-50 text-gray-400';
+                const nsfClass = deal.nsfCount > 0 ? 'text-amber-600 font-semibold' : '';
+                const dpdClass = deal.daysPastDue > 0 ? 'text-red-600 font-semibold' : '';
+                const statusBadge = getStatusBadge(deal.appStatus, deal.isActive);
+
+                return `<tr class="border-b border-gray-100 hover:bg-blue-50/50 ${rowClass}">
+                    <td class="px-3 py-2 font-mono">${deal.appNumber || '—'}</td>
+                    <td class="px-3 py-2">${statusBadge}</td>
+                    <td class="px-3 py-2 max-w-[180px] truncate" title="${deal.customerLegalName || ''}">${deal.customerLegalName || '—'}</td>
+                    <td class="px-3 py-2 max-w-[180px] truncate" title="${deal.primaryVendor || ''}">${deal.primaryVendor || '—'}</td>
+                    <td class="px-3 py-2">${deal.dealFormat || '—'}</td>
+                    <td class="px-3 py-2">${deal.lessor || '—'}</td>
+                    <td class="px-3 py-2 max-w-[150px] truncate" title="${deal.primaryEquipmentCategory || ''}">${deal.primaryEquipmentCategory || '—'}</td>
+                    <td class="px-3 py-2 font-mono">${deal.creditRating}</td>
+                    <td class="px-3 py-2 text-right font-mono">${deal.isActive ? fmtFull(deal.netInvest) : '—'}</td>
+                    <td class="px-3 py-2 text-right font-mono">${fmtFull(deal.monthlyPayment)}</td>
+                    <td class="px-3 py-2 text-center">${deal.termMonths}m</td>
+                    <td class="px-3 py-2 text-center">${deal.paymentsMade}/${deal.paymentsMade + deal.remainingPayments}</td>
+                    <td class="px-3 py-2 text-center ${nsfClass}">${deal.nsfCount}</td>
+                    <td class="px-3 py-2">${fmtDate(deal.lastNsfDate)}</td>
+                    <td class="px-3 py-2 text-center ${dpdClass}">${deal.daysPastDue > 0 ? deal.daysPastDue : '—'}</td>
+                    <td class="px-3 py-2 text-sm">${deal.accountManager || '—'}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function getStatusBadge(status, isActive) {
+            if (!status) return '<span class="text-gray-400">—</span>';
+            const styles = {
+                FUNDED: 'bg-green-100 text-green-700',
+                PAID_OFF: 'bg-gray-100 text-gray-500',
+                CREDIT_VALIDATION: 'bg-blue-100 text-blue-700',
+                CREDIT_REVIEW: 'bg-yellow-100 text-yellow-700',
+                AUTOSCORING_APPROVED: 'bg-emerald-100 text-emerald-700',
+                AUTOSCORING_DECLINED: 'bg-red-100 text-red-700',
+                MISSING_INFO: 'bg-orange-100 text-orange-700',
+                DEAL_DECLINED: 'bg-red-100 text-red-600'
+            };
+            const label = status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            return `<span class="inline-block px-2 py-0.5 rounded text-xs font-medium ${styles[status] || 'bg-gray-100 text-gray-600'}">${label}</span>`;
+        }
+    </script>
+</body>
+</html>
