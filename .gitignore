@@ -480,3 +480,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# EF Core Design MSBuild backslash artifact (bin\Debug is a literal dir on macOS)
+**/bin\\*
