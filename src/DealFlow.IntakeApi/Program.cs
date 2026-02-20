@@ -84,7 +84,18 @@ app.MapPost("/api/v1/deals", async (
         CreditRating = request.CreditRating,
         Status = DealStatus.Received,
         CreatedAt = DateTimeOffset.UtcNow,
-        UpdatedAt = DateTimeOffset.UtcNow
+        UpdatedAt = DateTimeOffset.UtcNow,
+        AppNumber = request.AppNumber,
+        CustomerLegalName = request.CustomerLegalName,
+        PrimaryVendor = request.PrimaryVendor,
+        DealFormat = request.DealFormat,
+        Lessor = request.Lessor,
+        AccountManager = request.AccountManager,
+        PrimaryEquipmentCategory = request.PrimaryEquipmentCategory,
+        EquipmentCost = request.EquipmentCost ?? request.Amount,
+        GrossContract = request.GrossContract ?? 0,
+        NetInvest = request.NetInvest ?? 0,
+        MonthlyPayment = request.MonthlyPayment ?? 0
     };
 
     deal.Events.Add(new DealEvent
@@ -133,7 +144,10 @@ static DealResponse ToResponse(Deal d) => new(
     d.Id, d.CorrelationId, d.EquipmentType, d.EquipmentYear,
     d.Amount, d.TermMonths, d.Industry, d.Province,
     d.CreditRating, d.Status, d.Score, d.RiskFlag,
-    d.CreatedAt, d.UpdatedAt);
+    d.CreatedAt, d.UpdatedAt,
+    d.AppNumber, d.AppStatus, d.CustomerLegalName, d.PrimaryVendor,
+    d.DealFormat, d.Lessor, d.AccountManager, d.PrimaryEquipmentCategory,
+    d.NetInvest, d.IsActive);
 
 // Required for WebApplicationFactory in tests
 public partial class Program { }

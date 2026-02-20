@@ -14,5 +14,15 @@ public record DealResponse(
     int? Score,
     string? RiskFlag,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt
+    DateTimeOffset UpdatedAt,
+    int? AppNumber = null,
+    string? AppStatus = null,
+    string? CustomerLegalName = null,
+    string? PrimaryVendor = null,
+    string? DealFormat = null,
+    string? Lessor = null,
+    string? AccountManager = null,
+    string? PrimaryEquipmentCategory = null,
+    decimal? NetInvest = null,
+    bool IsActive = true
 );
