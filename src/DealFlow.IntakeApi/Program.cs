@@ -80,7 +80,7 @@ app.MapPost("/api/v1/deals", async (
         TermMonths = request.TermMonths,
         Industry = request.Industry,
         Province = request.Province,
-        VendorTier = request.VendorTier,
+        CreditRating = request.CreditRating,
         Status = DealStatus.Received,
         CreatedAt = DateTimeOffset.UtcNow,
         UpdatedAt = DateTimeOffset.UtcNow
@@ -105,7 +105,7 @@ app.MapPost("/api/v1/deals", async (
         Amount = deal.Amount,
         TermMonths = deal.TermMonths,
         EquipmentYear = deal.EquipmentYear,
-        VendorTier = deal.VendorTier,
+        CreditRating = deal.CreditRating,
         Industry = deal.Industry,
         Province = deal.Province
     });
@@ -131,7 +131,7 @@ app.Run();
 static DealResponse ToResponse(Deal d) => new(
     d.Id, d.CorrelationId, d.EquipmentType, d.EquipmentYear,
     d.Amount, d.TermMonths, d.Industry, d.Province,
-    d.VendorTier, d.Status, d.Score, d.RiskFlag,
+    d.CreditRating, d.Status, d.Score, d.RiskFlag,
     d.CreatedAt, d.UpdatedAt);
 
 // Required for WebApplicationFactory in tests

@@ -5,7 +5,7 @@ namespace DealFlow.IntakeApi.Validators;
 
 public class SubmitDealValidator : AbstractValidator<SubmitDealRequest>
 {
-    private static readonly string[] ValidTiers = ["A", "B", "C"];
+    private static readonly string[] ValidRatings = ["CR1", "CR2", "CR3", "CR4", "CR5"];
 
     public SubmitDealValidator()
     {
@@ -15,7 +15,7 @@ public class SubmitDealValidator : AbstractValidator<SubmitDealRequest>
         RuleFor(x => x.TermMonths).InclusiveBetween(6, 120);
         RuleFor(x => x.Industry).NotEmpty().MaximumLength(100);
         RuleFor(x => x.Province).NotEmpty().MaximumLength(50);
-        RuleFor(x => x.VendorTier).Must(t => ValidTiers.Contains(t))
-            .WithMessage("VendorTier must be A, B, or C");
+        RuleFor(x => x.CreditRating).Must(r => ValidRatings.Contains(r))
+            .WithMessage("CreditRating must be CR1, CR2, CR3, CR4, or CR5 (CR1 = best)");
     }
 }

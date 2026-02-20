@@ -10,8 +10,8 @@ public class ModelTests
     {
         var id = Guid.NewGuid();
         var now = DateTimeOffset.UtcNow;
-        var a = new DealSummary(id, "Forklift", 100_000, "A", "RECEIVED", null, null, now);
-        var b = new DealSummary(id, "Forklift", 100_000, "A", "RECEIVED", null, null, now);
+        var a = new DealSummary(id, "Semi-Truck (Kenworth T680)", 185_000, "CR1", "RECEIVED", null, null, now);
+        var b = new DealSummary(id, "Semi-Truck (Kenworth T680)", 185_000, "CR1", "RECEIVED", null, null, now);
         a.Should().Be(b);
     }
 

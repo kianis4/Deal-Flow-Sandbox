@@ -9,7 +9,7 @@ public record DealResponse(
     int TermMonths,
     string Industry,
     string Province,
-    string VendorTier,
+    string CreditRating,
     string Status,
     int? Score,
     string? RiskFlag,

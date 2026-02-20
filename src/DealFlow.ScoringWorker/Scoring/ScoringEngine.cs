@@ -23,12 +23,15 @@ public static class ScoringEngine
         // Equipment age risk
         if (deal.EquipmentYear < 2018) score -= 15;
 
-        // Vendor tier risk
-        score += deal.VendorTier switch
+        // Credit rating risk (CR1 = best, CR5 = worst)
+        score += deal.CreditRating switch
         {
-            "C" => -20,
-            "B" => -10,
-            _   => 0
+            "CR1" =>   0,
+            "CR2" =>  -5,
+            "CR3" => -15,
+            "CR4" => -25,
+            "CR5" => -35,
+            _     =>   0
         };
 
         score = Math.Clamp(score, 0, 100);

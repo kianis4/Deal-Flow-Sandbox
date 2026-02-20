@@ -14,7 +14,7 @@ public class DealFlowDbContext(DbContextOptions<DealFlowDbContext> options) : Db
         {
             e.HasKey(x => x.Id);
             e.Property(x => x.Amount).HasPrecision(18, 2);
-            e.Property(x => x.VendorTier).HasMaxLength(1);
+            e.Property(x => x.CreditRating).HasMaxLength(3);
             e.HasMany(x => x.Events).WithOne(x => x.Deal).HasForeignKey(x => x.DealId);
         });
 

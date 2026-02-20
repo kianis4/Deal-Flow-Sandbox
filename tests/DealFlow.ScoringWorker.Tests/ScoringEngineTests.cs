@@ -11,20 +11,20 @@ public class ScoringEngineTests
         decimal amount = 200_000,
         int termMonths = 36,
         int equipYear = 2022,
-        string vendorTier = "A") => new()
+        string creditRating = "CR1") => new()
     {
         CorrelationId = Guid.NewGuid(),
         DealId = Guid.NewGuid(),
         Amount = amount,
         TermMonths = termMonths,
         EquipmentYear = equipYear,
-        VendorTier = vendorTier,
+        CreditRating = creditRating,
         Industry = "Construction",
         Province = "ON"
     };
 
     [Fact]
-    public void Perfect_deal_scores_100_LOW()
+    public void CR1_deal_with_good_params_scores_100_LOW()
     {
         var (score, flag) = ScoringEngine.Score(MakeDeal());
         score.Should().Be(100);
@@ -60,23 +60,38 @@ public class ScoringEngineTests
     }
 
     [Fact]
-    public void Tier_C_vendor_reduces_score_by_20()
+    public void CR5_rating_reduces_score_by_35()
     {
-        var (score, _) = ScoringEngine.Score(MakeDeal(vendorTier: "C"));
-        score.Should().Be(80);
+        var (score, _) = ScoringEngine.Score(MakeDeal(creditRating: "CR5"));
+        score.Should().Be(65);
     }
 
     [Fact]
-    public void Tier_B_vendor_reduces_score_by_10()
+    public void CR4_rating_reduces_score_by_25()
     {
-        var (score, _) = ScoringEngine.Score(MakeDeal(vendorTier: "B"));
-        score.Should().Be(90);
+        var (score, _) = ScoringEngine.Score(MakeDeal(creditRating: "CR4"));
+        score.Should().Be(75);
+    }
+
+    [Fact]
+    public void CR3_rating_reduces_score_by_15()
+    {
+        var (score, _) = ScoringEngine.Score(MakeDeal(creditRating: "CR3"));
+        score.Should().Be(85);
+    }
+
+    [Fact]
+    public void CR2_rating_reduces_score_by_5()
+    {
+        var (score, _) = ScoringEngine.Score(MakeDeal(creditRating: "CR2"));
+        score.Should().Be(95);
     }
 
     [Fact]
     public void Worst_case_deal_is_HIGH_risk()
     {
-        var worst = MakeDeal(amount: 2_000_000, termMonths: 84, equipYear: 2010, vendorTier: "C");
+        // Large excavator, aged, long term, worst credit — worst case for construction portfolio
+        var worst = MakeDeal(amount: 2_000_000, termMonths: 84, equipYear: 2010, creditRating: "CR5");
         var (score, flag) = ScoringEngine.Score(worst);
         score.Should().BeLessThan(50);
         flag.Should().Be(RiskFlag.High);
@@ -85,7 +100,7 @@ public class ScoringEngineTests
     [Fact]
     public void Score_never_goes_below_zero()
     {
-        var worst = MakeDeal(amount: 10_000_000, termMonths: 120, equipYear: 1990, vendorTier: "C");
+        var worst = MakeDeal(amount: 10_000_000, termMonths: 120, equipYear: 1990, creditRating: "CR5");
         var (score, _) = ScoringEngine.Score(worst);
         score.Should().BeGreaterThanOrEqualTo(0);
     }

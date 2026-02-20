@@ -37,13 +37,13 @@ public class DatabaseIntegrationTests : IAsyncLifetime
         {
             Id = Guid.NewGuid(),
             CorrelationId = Guid.NewGuid(),
-            EquipmentType = "Excavator",
+            EquipmentType = "Excavator (Caterpillar 320)",
             EquipmentYear = 2021,
             Amount = 250_000,
             TermMonths = 48,
             Industry = "Construction",
             Province = "ON",
-            VendorTier = "A",
+            CreditRating = "CR2",
             Status = DealStatus.Received,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow
@@ -54,7 +54,7 @@ public class DatabaseIntegrationTests : IAsyncLifetime
 
         var retrieved = await ctx.Deals.FindAsync(deal.Id);
         retrieved.Should().NotBeNull();
-        retrieved!.EquipmentType.Should().Be("Excavator");
+        retrieved!.EquipmentType.Should().Be("Excavator (Caterpillar 320)");
         retrieved.Status.Should().Be(DealStatus.Received);
         retrieved.Amount.Should().Be(250_000);
     }
@@ -68,13 +68,13 @@ public class DatabaseIntegrationTests : IAsyncLifetime
         {
             Id = Guid.NewGuid(),
             CorrelationId = Guid.NewGuid(),
-            EquipmentType = "Forklift",
+            EquipmentType = "Semi-Truck (Freightliner Cascadia)",
             EquipmentYear = 2022,
-            Amount = 100_000,
+            Amount = 145_000,
             TermMonths = 36,
-            Industry = "Logistics",
+            Industry = "Transportation",
             Province = "BC",
-            VendorTier = "B",
+            CreditRating = "CR2",
             Status = DealStatus.Received,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow
@@ -106,13 +106,13 @@ public class DatabaseIntegrationTests : IAsyncLifetime
         {
             Id = Guid.NewGuid(),
             CorrelationId = Guid.NewGuid(),
-            EquipmentType = "Crane",
+            EquipmentType = "Crawler Crane (Liebherr LR 1300)",
             EquipmentYear = 2019,
-            Amount = 500_000,
+            Amount = 875_000,
             TermMonths = 60,
             Industry = "Construction",
             Province = "AB",
-            VendorTier = "C",
+            CreditRating = "CR4",
             Status = DealStatus.Received,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow

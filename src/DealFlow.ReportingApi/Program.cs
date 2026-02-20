@@ -27,7 +27,7 @@ app.MapGet("/api/v1/deals", async (
     DealFlowDbContext db,
     string? status,
     decimal? minAmount,
-    string? vendorTier) =>
+    string? creditRating) =>
 {
     var query = db.Deals.AsQueryable();
 
@@ -37,13 +37,13 @@ app.MapGet("/api/v1/deals", async (
     if (minAmount.HasValue)
         query = query.Where(d => d.Amount >= minAmount.Value);
 
-    if (!string.IsNullOrWhiteSpace(vendorTier))
-        query = query.Where(d => d.VendorTier == vendorTier.ToUpper());
+    if (!string.IsNullOrWhiteSpace(creditRating))
+        query = query.Where(d => d.CreditRating == creditRating.ToUpper());
 
     var deals = await query
         .OrderByDescending(d => d.CreatedAt)
         .Select(d => new DealSummary(
-            d.Id, d.EquipmentType, d.Amount, d.VendorTier,
+            d.Id, d.EquipmentType, d.Amount, d.CreditRating,
             d.Status, d.Score, d.RiskFlag, d.CreatedAt))
         .ToListAsync();
 

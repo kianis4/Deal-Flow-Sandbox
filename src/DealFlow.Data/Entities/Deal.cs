@@ -10,7 +10,7 @@ public class Deal
     public int TermMonths { get; set; }
     public string Industry { get; set; } = default!;
     public string Province { get; set; } = default!;
-    public string VendorTier { get; set; } = default!;
+    public string CreditRating { get; set; } = default!;
     public string Status { get; set; } = default!;
     public int? Score { get; set; }
     public string? RiskFlag { get; set; }

@@ -7,5 +7,5 @@ public record SubmitDealRequest(
     int TermMonths,
     string Industry,
     string Province,
-    string VendorTier
+    string CreditRating
 );

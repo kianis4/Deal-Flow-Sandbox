@@ -4,7 +4,7 @@ public record DealSummary(
     Guid Id,
     string EquipmentType,
     decimal Amount,
-    string VendorTier,
+    string CreditRating,
     string Status,
     int? Score,
     string? RiskFlag,
