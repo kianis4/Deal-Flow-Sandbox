@@ -235,7 +235,7 @@ graph TB
     subgraph azure ["Azure — Container Apps (docs/azure-setup.md)"]
         direction LR
         aPG[("Azure DB for\nPostgreSQL\n(managed)")]
-        aMQ[["RabbitMQ\nContainer App\n(internal)")]
+        aMQ[["RabbitMQ\nContainer App\ninternal"]]
         aIA["deal-intake-api\nContainer App\n(external ingress)"]
         aSW["deal-scoring-worker\nContainer App\n(no ingress)"]
         aNW["deal-notify\nContainer App\n(no ingress)"]
