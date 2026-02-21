@@ -162,6 +162,12 @@ erDiagram
         integer     NsfCount
         date        LastNsfDate      "nullable"
         integer     DaysPastDue
+        numeric     Past1            "1-30 days bucket"
+        numeric     Past31           "31-60 days bucket"
+        numeric     Past61           "61-90 days bucket"
+        numeric     Past91           "91+ days bucket"
+        timestamptz BookingDate      "nullable"
+        timestamptz FinalPaymentDate "nullable"
         timestamptz CreatedAt
         timestamptz UpdatedAt
     }
@@ -521,7 +527,8 @@ DealFlow-Sandbox/
 │
 ├── docs/
 │   ├── azure-setup.md               # Full Azure Container Apps deployment guide
-│   └── demo.md                      # Curl-based walkthrough script
+│   ├── demo.md                      # Curl-based walkthrough script
+│   └── Suleyman_Resume_02_2026.pdf  # Resume
 │
 ├── .github/workflows/ci.yml         # GitHub Actions: build + test on push
 ├── docker-compose.yml               # Full local stack definition
@@ -536,7 +543,7 @@ Every dependency runs as a Docker container. There is nothing to install locally
 
 | Container | Image | What it does |
 |---|---|---|
-| `postgres` | postgres:16-alpine | Relational database. Tables auto-created by EF Core on first start. 28 demo deals seeded automatically. |
+| `postgres` | postgres:16-alpine | Relational database. Tables auto-created by EF Core on first start. 25 demo deals seeded automatically. |
 | `rabbitmq` | rabbitmq:3.13-management-alpine | Message broker. Queues auto-created by MassTransit on connect. |
 | `deal-intake-api` | Built from source | ASP.NET Core on internal port 8080, mapped to host 5001. |
 | `deal-scoring-worker` | Built from source | Worker service. No port. Connects to RabbitMQ + Postgres. |
@@ -664,3 +671,14 @@ docker exec -it deal-flow-sandbox-postgres-1 psql -U dealflow -d dealflow
 | Containers | Docker + Docker Compose | — |
 | CI | GitHub Actions | — |
 | Cloud target | Azure Container Apps | — |
+
+---
+
+## Author
+
+**Suleyman Kiani** — Sales Analyst at Mitsubishi HC Capital Canada | BASc Computer Science | MEng Computing & Software (in progress)
+
+- [Resume (PDF)](docs/Suleyman_Resume_02_2026.pdf)
+- [GitHub](https://github.com/kianis4)
+- [LinkedIn](https://linkedin.com/in/suleyman-kiani)
+- [suleyman.io](https://suleyman.io)

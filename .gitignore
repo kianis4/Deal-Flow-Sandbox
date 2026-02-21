@@ -483,3 +483,6 @@ $RECYCLE.BIN/
 
 # EF Core Design MSBuild backslash artifact (bin\Debug is a literal dir on macOS)
 **/bin\\*
+
+# Demo video rendered output (regenerate with: cd demo-video && npx remotion render DealFlowDemo out/demo.mp4)
+demo-video/out/

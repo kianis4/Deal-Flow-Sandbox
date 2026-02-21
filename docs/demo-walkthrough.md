@@ -22,13 +22,13 @@ The DealFlow sandbox demonstrates a resilient, event-driven architecture using *
 ## Demo Scenarios
 
 ### Deal Pipeline
-- **Low-Risk (CR1):** $185K Semi-Truck, 60-month term → Score 90, LOW risk
+- **Low-Risk (CR1):** $185K Semi-Truck, 60-month     Expected: status "SCORED", score 100, riskFlag "LOW" risk
 - **High-Risk (CR5):** $1.25M Excavator, 84-month term, 2014 equipment → Score 5, HIGH risk
 - **Validation:** Empty fields, negative amounts, invalid credit ratings → 400 with field-level errors
 
 ### Exposure Lookup
 - **TransCanada Hauling (customer):** 4 active deals, $535K exposure, 3 NSFs, Enhanced tier
-- **Strongco Corporation (vendor):** 3 deals across 2 customers, $714K exposure
+- **Strongco Corporation (vendor)::** 3 deals across 2 customers, $714K exposure
 - **Coastal Demolition (customer):** 10 NSFs, 2 delinquent — the problem customer
 - **Prairie Grain (customer):** $116K, Standard tier — clean payment history
 - **Maritime Medical (customer):** Paid-off only, $0 active exposure
@@ -57,7 +57,7 @@ open http://localhost:5001/scalar/v1
 
 ## Seed Data
 
-28 realistic deals are seeded automatically on first start, covering:
+25 realistic deals are seeded automatically on first start, covering:
 - 8 customers across transportation, construction, agriculture, medical, and tech
 - 5+ vendors including National Truck Centre, Strongco, Fleet Equipment
 - Both lessors (MHCCL and MHCCA)

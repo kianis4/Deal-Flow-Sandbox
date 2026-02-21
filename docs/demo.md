@@ -9,7 +9,7 @@ docker compose up --build
 # Wait until all services are healthy (~60s first run, ~10s after)
 ```
 
-28 realistic demo deals are seeded automatically on first start — covering multiple customers, vendors, equipment types, NSF histories, and delinquency scenarios.
+25 realistic demo deals are seeded automatically on first start — covering multiple customers, vendors, equipment types, NSF histories, and delinquency scenarios.
 
 ---
 
@@ -52,7 +52,7 @@ docker compose logs deal-scoring-worker -f
 Within 2 seconds:
 ```
 Scoring deal <id> [correlation: <uuid>]
-Deal <id> scored: 90 (LOW)
+Deal <id> scored: 100 (LOW)
 ```
 
 ### Step 3: Check Deal Status
@@ -61,7 +61,7 @@ Deal <id> scored: 90 (LOW)
 curl -s http://localhost:5001/api/v1/deals/<id> | python3 -m json.tool
 ```
 
-**Expected:** status = "SCORED", score = 90, riskFlag = "LOW"
+**Expected:** status = "SCORED", score = 100, riskFlag = "LOW"
 
 ### Step 4: View Audit Timeline
 
@@ -121,7 +121,7 @@ curl -s -X POST http://localhost:5001/api/v1/deals \
 
 ## Part 2: Party Exposure Lookup
 
-This is the feature that replaces a 2+ minute manual process on the SSRS reporting site. Open the web UI at **http://localhost:5002/index.html** or use the API directly.
+This is the feature that replaces a 15–20 minute manual process on the SSRS reporting site. Open the web UI at **http://localhost:5002/index.html** or use the API directly.
 
 ### Step 7: Customer Lookup — TransCanada Hauling (Enhanced Tier)
 
