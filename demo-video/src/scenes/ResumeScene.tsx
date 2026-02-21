@@ -2,17 +2,15 @@ import { AbsoluteFill, Img, interpolate, useCurrentFrame, spring, useVideoConfig
 import { colors, fonts } from "../styles";
 
 /**
- * Scene 7: Resume flash — all 3 pages scroll through.
- * 270 frames (9s). Each page gets ~3 seconds of visibility.
+ * Scene 7: Resume flash — both pages scroll through.
+ * 270 frames (9s). Each page gets ~4.5 seconds of visibility.
  *
  * Timeline:
  *   0-25:    Label fades in
  *   15-35:   Resume container fades in + springs
- *   35-100:  Page 1 holds
- *   100-130: Scroll to page 2
- *   130-190: Page 2 holds
- *   190-220: Scroll to page 3
- *   220-270: Page 3 holds
+ *   35-140:  Page 1 holds
+ *   140-170: Scroll to page 2
+ *   170-270: Page 2 holds
  */
 export const ResumeScene: React.FC = () => {
   const frame = useCurrentFrame();
@@ -22,24 +20,19 @@ export const ResumeScene: React.FC = () => {
   const resumeOpacity = interpolate(frame, [15, 35], [0, 1], { extrapolateRight: "clamp" });
   const resumeScale = spring({ frame: frame - 15, fps, from: 0.92, to: 1, durationInFrames: 25 });
 
-  // Scroll through 3 pages — each page ~802px tall at 620px width
-  // Page 1: hold (35-100), scroll to page 2 (100-130), hold (130-190),
-  // scroll to page 3 (190-220), hold (220-270)
+  // Scroll through 2 pages — each page ~802px tall at 620px width
+  // Page 1: hold (35-140), scroll to page 2 (140-170), hold (170-270)
   const scrollY =
-    frame < 100
+    frame < 140
       ? 0
-      : frame < 130
-        ? interpolate(frame, [100, 130], [0, -802], { extrapolateRight: "clamp" })
-        : frame < 190
-          ? -802
-          : frame < 220
-            ? interpolate(frame, [190, 220], [-802, -1604], { extrapolateRight: "clamp" })
-            : -1604;
+      : frame < 170
+        ? interpolate(frame, [140, 170], [0, -802], { extrapolateRight: "clamp" })
+        : -802;
 
   const linkOpacity = interpolate(frame, [80, 100], [0, 1], { extrapolateRight: "clamp" });
 
   // Page indicator dots
-  const currentPage = frame < 115 ? 0 : frame < 205 ? 1 : 2;
+  const currentPage = frame < 155 ? 0 : 1;
 
   return (
     <AbsoluteFill
@@ -100,10 +93,6 @@ export const ResumeScene: React.FC = () => {
             src={staticFile("resume-page-2.png")}
             style={{ width: 620, display: "block" }}
           />
-          <Img
-            src={staticFile("resume-page-3.png")}
-            style={{ width: 620, display: "block" }}
-          />
         </div>
       </div>
 
@@ -116,7 +105,7 @@ export const ResumeScene: React.FC = () => {
           opacity: resumeOpacity,
         }}
       >
-        {[0, 1, 2].map((i) => (
+        {[0, 1].map((i) => (
           <div
             key={i}
             style={{
